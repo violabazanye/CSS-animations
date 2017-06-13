@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2016 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+    <!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
+    <meta http-equiv="Content-Security-Policy" content="default-src *; script-src * 'unsafe-eval' 'unsafe-inline'; connect-src *; img-src *; style-src * 'unsafe-inline' ; media-src *">    
+    <!-- Good default declaration:
+    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+    * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+        * Enable inline JS: add 'unsafe-inline' to default-src
+        * Enable eval(): add 'unsafe-eval' to default-src
+    * Create your own at http://cspisawesome.com
+    -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
+
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Open+Sans'>
+    <script type="text/javascript" src="js/iscroll.js"></script>
+    <script type="text/javascript" src="js/demoUtils.js"></script>
+    <script type="text/javascript" src="js/iscroll-probe.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+
+    <title>Hello World</title>
+</head>
+
+<body onload="loaded()">
+    <div class="ui-content">
+    <div id="overlay"></div>
+    <div class="top">
+        <img id="open_menu" src="img/menu.png" style="z-index: 20001;">
+        <h3>Notifications</h3>
+        <img class="right" src="img/search.png">
+        <div id="loading">
+                <div class="ball" id="ball_1">
+                    <div class="innerBall"></div>
+                </div>
+                <div class="ball" id="ball_2">
+                    <div class="innerBall"></div>
+                </div>
+                <div class="ball" id="ball_3">
+                    <div class="innerBall"></div>
+                </div>
+                <div class="ball" id="ball_4">
+                    <div class="innerBall"></div>
+                </div>
+                <div class="ball" id="ball_5">
+                    <div class="innerBall"></div>
+                </div>
+            </div>
+    </div>
+    
+        <div id="wrapper" class="list">        
+            <div id="scroller">
+            <div class="pullDown"></div>
+                <div id="theList"></div>
+            </div>
+        </div>
+
+            <div id="bottomNav">
+                <div id="option1" class="tool-option"><img src="img/settings.png"></div>
+                <div id="more" class="tool-option"><img src="img/plus.png"></div>
+                <div id="option3" class="tool-option"><img src="img/avatar.png"></div>
+            </div>
+
+        </div>
+
+        <div class="menu">
+            <div id="cancel" class="option"><img src="img/cancel.png"></div>
+            <div id="two" class="option"><img src="img/avatar.png"></div>
+            <div id="three" class="option" style="background: #cc324b" id="selected"><img src="img/notification.png"></div>
+            <a href="jellyscroll.html"><div id="four" class="option"><img src="img/musical-note.png"></div></a>
+            <div id="five" class="option"><img src="img/video-player.png"></div>
+            <div id="six" class="option"><img src="img/placeholder.png"></div>
+            <div id="seven" class="option"><img src="img/open-book.png"></div>
+        </div>
+
+
+    <!--scripts start here -->
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript">
+        app.initialize();
+
+        var myScroll;
+        var scroll_in_progress = false;
+        var items_per_page = 6;
+        var position;
+
+        function trigger_myScroll(offset){
+            console.log('triggered myScroll');
+            position = document.getElementById('position');
+            pullDownEl = document.querySelector('#wrapper .pullDown')
+            if (pullDownEl) {
+                pullDownOffset = pullDownEl.offsetHeight;
+            } else {
+                pullDownOffset = 0;
+            }
+
+            if ($('#wrapper #theList > p').length < items_per_page) {
+                $('#wrapper .pullDown').hide();
+                offset = 0;
+            }
+
+            myScroll = new IScroll('#wrapper', {
+                probeType:1, mouseWheel:true, bounceEasing:'elastic', bounceTime: 1200});
+
+
+            myScroll.on('scroll', function () {               
+                scroll_in_progress = true;
+                console.log('refreshing');                
+                if(this.directionY == -1 && this.y >= -100){
+                    $('#loading').show();
+                    pullDownAction();
+                }
+            });
+
+            myScroll.on('scrollEnd', function () {
+                scroll_in_progress = false;
+                console.log('scroll ended');
+                $('#loading').hide();
+                myScroll.y = 0;
+            });
+
+            setTimeout(function() {
+                $('#wrapper').css({left:0});
+            }, 100);
+        }
+
+        load_content = function(refresh, next_page){
+            setTimeout(function(){
+                if(!refresh){
+                    //load initial content
+                    $('#theList').append('<a href="waves.html"><p>After his morning walk and breakfast, Darwin was in his study by 8 and worked a steady hour and a half. At 9:30 he would read the morning mail and write letters.</p></a>');
+                    $('#theList').append('<p>At 10:30, Darwin returned to more serious work, sometimes moving to his aviary, greenhouse, or one of several other buildings where he conducted his experiments.</p>');
+                    $('#theList').append('<p>By noon, he would declare, “I’ve done a good day’s work,” and set out on a long walk on the Sandwalk, a path he had laid out not long after buying Down House.</p>');
+                    $('#theList').append('<p>When he returned after an hour or more, Darwin had lunch and answered more letters.</p>');
+                    $('#theList').append('<p>At 3 he would retire for a nap; an hour later he would arise, take another walk around the Sandwalk, then return to his study until 5:30, when he would join his wife, Emma, and their family for dinner.</p>');
+                    $('#theList').append('<p>On this schedule he wrote 19 books, including technical volumes on climbing plants, barnacles, and other subjects</p>');
+                }else if (refresh && !next_page) {
+                    //refreshing the content
+                    $('#theList').empty();
+                    $('#theList').append('<p>the controversial Descent of Man; and The Origin of Species, probably the single most famous book in the history of science, and a book that still affects the way we think about nature and ourselves.</p>');
+                    $('#theList').append('<p>Anyone who reviews his schedule cannot help but notice the creator’s paradox. Darwin’s life revolved around science.</p>');
+                    $('#theList').append('<p>Since his undergraduate days, Darwin had devoted himself to scientific collecting, exploration, and eventually theorizing.</p>');
+                    $('#theList').append('<p>He and Emma moved to the country from London to have more space to raise a family and to have more space—in more than one sense of the word—for science.</p>');
+                    $('#theList').append('<p>Down House gave him space for laboratories and greenhouses, and the countryside gave him the peace and quiet necessary to work.</p>');
+                    $('#theList').append('<p>But at the same time, his days don’t seem very busy to us. The times we would classify as “work” consist of three 90-minute periods.</p>');
+                }
+
+                if (refresh) {
+                    myScroll.refresh();
+                    pullActionCallback();
+                }else{
+                    if (myScroll) {
+                        myScroll.destroy();
+                        $(myScroll.scroller).attr('style', '');
+                        myScroll = null;
+                    }
+
+                    trigger_myScroll(); 
+                }
+            }, 1000);
+        };
+
+        function pullDownAction(){
+            console.log("pullDownAction called");
+            
+            load_content('refresh');
+            $('#theList').data('page', 1);
+        }
+
+        function pullActionCallback(){
+            myScroll.scrollBy(0, -100, 2000, IScroll.utils.ease.elastic);
+        }
+
+        function loaded () {
+            load_content();
+        }
+
+        document.addEventListener('touchmove', function (e) { e.preventDefault(); }, isPassive() ? {
+            capture: false,
+            passive: false
+        } : false);
+
+
+        $("#open_menu").click(function(){
+            $('.menu').toggleClass('open'); 
+            if($('div.menu').hasClass('open')){
+                $('#open_menu').css('opacity','0');
+            }else{
+                $('#open_menu').css('opacity','1');
+            }      
+        });
+
+        $('#more').click(function(){
+            
+            var x = document.getElementById('overlay');
+            if(x.style.display == 'block'){
+                x.style.display = 'none';
+            }else{
+                x.style.display = 'block';
+                $('#overlay').append('<div class="extra-tools" style="bottom: 190px"><img src="img/cloud.png"></div>');
+                $('#overlay').append('<div class="extra-tools" style="bottom: 125px"><img src="img/star.png"></div>');
+                $('#overlay').append('<div class="extra-tools" style="bottom: 60px"><img src="img/share.png"></div>');
+            }
+            
+            $('#bottomNav').toggleClass('transformToCircle');
+        });
+
+    </script>
+</body>
+
+</html>
